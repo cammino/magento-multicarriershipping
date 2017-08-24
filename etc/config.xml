@@ -1,0 +1,64 @@
+<config>
+	<modules>
+        <Cammino_Multicarriershipping>
+            <version>0.0.1</version>
+        </Cammino_Multicarriershipping>
+    </modules>
+	<global>
+		<helpers>
+            <Multicarriershipping>
+                 <class>Cammino_Multicarriershipping_Helper_Data</class>
+            </Multicarriershipping>
+        </helpers>
+  	</global>
+  	<frontend>
+        <routers>
+            <multicarriershipping>
+                <use>standard</use>
+                <args>
+                    <module>Cammino_Multicarriershipping</module>
+                    <frontName>multicarriershipping</frontName>
+                </args>
+            </multicarriershipping>
+        </routers>
+    </frontend>
+	<admin>
+		<routers>
+            <multicarriershipping>
+                <use>admin</use>
+                <args>
+                    <module>Cammino_Multicarriershipping</module>
+                    <frontName>multicarriershipping</frontName>
+                </args>
+            </multicarriershipping>
+        </routers>
+    </admin>
+    <adminhtml>
+		<acl>
+			<resources>
+				<all>
+					<title>Allow Everything</title>
+				</all>
+				<admin>
+					<children>
+						<Cammino_Multicarriershipping>
+							<title>Multicarrier Shipping Module</title>
+							<sort_order>11</sort_order>
+						</Cammino_Multicarriershipping>
+					</children>
+				</admin>
+			</resources>
+		</acl>
+		<menu>
+			<sales>
+				<children>
+					<multicarriershipping>
+						<title>Tabela de Frete</title>
+						<sort_order>10</sort_order>               
+						<action>multicarriershipping/adminhtml_tablerate</action>
+					</multicarriershipping>
+				</children>
+			</sales>
+		</menu>
+	</adminhtml>
+</config>

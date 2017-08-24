@@ -1,0 +1,4 @@
+<?php
+class Cammino_Multicarriershipping_IndexController extends Mage_Core_Controller_Front_Action
+{
+}
