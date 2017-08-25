@@ -1,0 +1,39 @@
+<?php
+
+class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Edit extends Mage_Adminhtml_Block_Widget_Form_Container
+{
+    public function __construct()
+    {
+        parent::__construct();
+                 
+        $this->_objectId = 'id';
+        $this->_controller = 'adminhtml_tablerate';
+        $this->_blockGroup = 'multicarriershipping';
+        
+        $this->_updateButton('save', 'label', Mage::helper('multicarriershipping')->__('Save item'));
+        $this->_updateButton('delete', 'label', Mage::helper('multicarriershipping')->__('Delete Item'));
+		
+        $this->_addButton('saveandcontinue', array(
+            'label'     => Mage::helper('multicarriershipping')->__('Save And Continue Edit'),
+            'onclick'   => 'saveAndContinueEdit()',
+            'class'     => 'save',
+        ), -100);
+
+        $this->_formScripts[] = "
+            function saveAndContinueEdit(){
+                editForm.submit($('edit_form').action+'back/edit/');
+            }
+        ";
+    }
+
+    public function getHeaderText()
+    {
+        if( Mage::registry('tablerate_data') && Mage::registry('tablerate_data')->getId() ) {
+            return Mage::helper('multicarriershipping')->__("Edit Item");
+        } else {
+            return Mage::helper('multicarriershipping')->__('Add Item');
+        }
+    }
+
+    
+}

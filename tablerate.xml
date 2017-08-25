@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <multicarriershipping_adminhtml_tablerate_index>
+        <reference name="content">
+            <block type="multicarriershipping/adminhtml_tablerate" name="tablerate" />
+        </reference>
+    </multicarriershipping_adminhtml_tablerate_index>
+</layout>

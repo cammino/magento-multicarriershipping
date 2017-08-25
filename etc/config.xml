@@ -10,6 +10,11 @@
                  <class>Cammino_Multicarriershipping_Helper</class>
             </multicarriershipping>
         </helpers>
+        <blocks>
+            <multicarriershipping>
+                <class>Cammino_Multicarriershipping_Block</class>
+            </multicarriershipping>
+        </blocks>
         <models>
             <multicarriershipping>
                 <class>Cammino_Multicarriershipping_Model</class>
@@ -25,24 +30,24 @@
             </multicarriershipping_mysql4>
         </models>
         <resources>
-            <tablerate_setup>
+            <multicarriershipping_setup>
                 <setup>
                     <module>Cammino_Multicarriershipping</module>
                 </setup>
                 <connection>
                     <use>core_setup</use>
                 </connection>
-            </tablerate_setup>
-            <tablerate_write>
+            </multicarriershipping_setup>
+            <multicarriershipping_write>
                 <connection>
                     <use>core_write</use>
                 </connection>
-            </tablerate_write>
-            <tablerate_read>
+            </multicarriershipping_write>
+            <multicarriershipping_read>
                 <connection>
                     <use>core_read</use>
                 </connection>
-            </tablerate_read>
+            </multicarriershipping_read>
         </resources>
   	</global>
   	<frontend>
@@ -83,6 +88,22 @@
 				</admin>
 			</resources>
 		</acl>
+        <translate>
+            <modules>
+                <Cammino_Multicarriershipping>
+                    <files>
+                        <default>Cammino_Multicarriershipping.csv</default>
+                    </files>
+                </Cammino_Multicarriershipping>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <multicarriershipping_tablerate>
+                    <file>tablerate.xml</file>
+                </multicarriershipping_tablerate>
+            </updates>
+        </layout>
 		<menu>
 			<sales>
 				<children>
