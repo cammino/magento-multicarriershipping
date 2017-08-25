@@ -3,7 +3,12 @@ class Cammino_Multicarriershipping_Adminhtml_TablerateController extends Mage_Ad
      
     public function indexAction()
     {  
-        var_dump("teste");die;
-       
+        $model = Mage::getModel('multicarriershipping/tablerate')->getCollection();
+        foreach($model as $a) {
+        	var_dump($a->getPrice());
+        }
+        die;
+        $helper = Mage::helper("multicarriershipping"); 
+    	   
     } 
 }

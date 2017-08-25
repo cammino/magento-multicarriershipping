@@ -6,10 +6,44 @@
     </modules>
 	<global>
 		<helpers>
-            <Multicarriershipping>
-                 <class>Cammino_Multicarriershipping_Helper_Data</class>
-            </Multicarriershipping>
+            <multicarriershipping>
+                 <class>Cammino_Multicarriershipping_Helper</class>
+            </multicarriershipping>
         </helpers>
+        <models>
+            <multicarriershipping>
+                <class>Cammino_Multicarriershipping_Model</class>
+                <resourceModel>multicarriershipping_mysql4</resourceModel>
+            </multicarriershipping>
+            <multicarriershipping_mysql4>
+                <class>Cammino_Multicarriershipping_Model_Mysql4</class>
+                <entities>
+                    <tablerate>
+                        <table>multicarriershipping_tablerate</table>
+                    </tablerate>
+                </entities>
+            </multicarriershipping_mysql4>
+        </models>
+        <resources>
+            <tablerate_setup>
+                <setup>
+                    <module>Cammino_Multicarriershipping</module>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </tablerate_setup>
+            <tablerate_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </tablerate_write>
+            <tablerate_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </tablerate_read>
+        </resources>
   	</global>
   	<frontend>
         <routers>
