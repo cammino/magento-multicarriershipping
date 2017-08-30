@@ -53,6 +53,15 @@ class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Edit_Tab_Form exten
 			'name'      => 'additional_price',
 			'class'     => 'validate-number',
 		));
+
+		$fieldset->addField('shipping_days', 'text', array(
+			'label'     => Mage::helper('multicarriershipping')->__('Shipping Days'),
+			'class'     => 'required-entry',
+			'required'  => true,
+			'name'      => 'shipping_days',
+			'class'     => 'validate-number',
+		));
+
 		if (Mage::getSingleton('adminhtml/session')->getTablerateData()) {
 			$form->setValues(Mage::getSingleton('adminhtml/session')->getTablerateData());
 			Mage::getSingleton('adminhtml/session')->setTablerateData(null);

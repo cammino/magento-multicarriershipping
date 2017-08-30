@@ -10,7 +10,7 @@ class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Edit extends Mage_A
         $this->_controller = 'adminhtml_tablerate';
         $this->_blockGroup = 'multicarriershipping';
         
-        $this->_updateButton('save', 'label', Mage::helper('multicarriershipping')->__('Save item'));
+        $this->_updateButton('save', 'label', Mage::helper('multicarriershipping')->__('Save Item'));
         $this->_updateButton('delete', 'label', Mage::helper('multicarriershipping')->__('Delete Item'));
 		
         $this->_addButton('saveandcontinue', array(

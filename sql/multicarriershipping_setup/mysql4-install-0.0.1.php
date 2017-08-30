@@ -12,6 +12,7 @@ CREATE TABLE `multicarriershipping_tablerate`(
   `weight_end` decimal(14,2) NOT NULL DEFAULT '0.00',
   `price` decimal(14,2) NOT NULL DEFAULT '0.00',
   `additional_price` decimal(14,2) NOT NULL DEFAULT '0.00',
+  `shipping_days` int(3) NOT NULL DEFAULT '0',
   PRIMARY KEY (`tablerate_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ");

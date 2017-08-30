@@ -24,11 +24,8 @@ class Cammino_Multicarriershipping_Adminhtml_TablerateController extends Mage_Ad
             Mage::register('tablerate_data', $model);
 
             $this->loadLayout();
-            
-            $this->_setActiveMenu('banners/items');
-
+        
             $this->getLayout()->getBlock('head')->setCanLoadExtJs(true);
-            
             
             $this->_addContent($this->getLayout()->createBlock('multicarriershipping/adminhtml_tablerate_edit'))
                 ->_addLeft($this->getLayout()->createBlock('multicarriershipping/adminhtml_tablerate_edit_tabs'));
@@ -47,10 +44,6 @@ class Cammino_Multicarriershipping_Adminhtml_TablerateController extends Mage_Ad
  
     public function saveAction() {
         if ($data = $this->getRequest()->getPost()) {
-            
-           
-            // FIX BUG VERSION 1.5
-            // Ao mandar uma variavel vazia estava salvando o valor no banco de 0000-00-00 00:00:00, entao caso for vazio forçamos o valor NULL.
 
             $model = Mage::getModel('multicarriershipping/tablerate');     
             $model->setData($data)

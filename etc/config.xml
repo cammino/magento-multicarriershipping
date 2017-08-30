@@ -29,6 +29,15 @@
                 </entities>
             </multicarriershipping_mysql4>
         </models>
+        <sales>
+            <shipping>
+                <carriers>
+                    <multicarrier>
+                        <class>Cammino_Multicarriershipping_Model_Carrier_Multicarrier</class>
+                    </multicarrier>
+                </carriers>
+            </shipping>
+        </sales>
         <resources>
             <multicarriershipping_setup>
                 <setup>
@@ -50,6 +59,20 @@
             </multicarriershipping_read>
         </resources>
   	</global>
+    <default>
+        <carriers>
+            <multicarrier>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <model>cammino_multicarriershipping_model_carrier_multicarrier</model>
+                <name>multicarrier</name>
+                <title>Transportadora</title>
+                <freepac>0</freepac>
+                <sort_order>2</sort_order>
+                <showmethod>1</showmethod>
+            </multicarrier>
+        </carriers>
+    </default>
   	<frontend>
         <routers>
             <multicarriershipping>
