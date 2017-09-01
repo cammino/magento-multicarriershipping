@@ -35,6 +35,7 @@
                     <multicarrier>
                         <class>Cammino_Multicarriershipping_Model_Carrier_Multicarrier</class>
                     </multicarrier>
+                    
                 </carriers>
             </shipping>
         </sales>
