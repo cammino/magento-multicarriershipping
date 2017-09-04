@@ -26,20 +26,18 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
 
             //get dimensions
             $dimensions = $this->getDimensions($product, $cartProduct->getQty());
-
-            if ($product->getAttributeText('multicarrier_carrier') == "Correios") {
-                
+            // if the product config named multicarrier_carrier is not set, presume it is 
+            if ($product->getAttributeText('multicarrier_carrier') == "Correios" or !$product->getAttributeText('multicarrier_carrier')) {
                 $correiosDimensionsSum = $this->getDimensionsSum($dimensionsSum, $dimensions);
                 // weight used by correios
                 $correiosWeightSum += ($cartProduct->getWeight() * $cartProduct->getQty());
+             } else if ($product->getAttributeText('multicarrier_carrier') == "Tablerate") {
 
-            } else if ($product->getAttributeText('multicarrier_carrier') == "Tablerate") {
                 // weight used by correios
                 $tablerateWeightSum += $this->getWeightUsingDimensions($dimensions, $cartProduct);
             }
 
         }
-
         $this->chooseCarrier($tablerateWeightSum, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);
 
         
@@ -48,19 +46,38 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     }
 
     private function chooseCarrier($tablerateWeightSum, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result) {
+         // show rates inside the shipping/carriers table according to which type of carriers it belongs (tablerate or correios) 
+        $tablerateRates = $this->getCarrierTransportadora($tablerateWeightSum, $destinationCep);
+        $correiosRates = $this->getCarrierCorreios($correiosWeightSum, $destinationCep, $correiosDimensionsSum); 
+        if ((($correiosWeightSum > 0) && count($correiosRates) == 0) || (($tablerateWeightSum > 0) && count($tablerateRates) == 0)) {
+            $this->addError($result, 'Não há frete disponível para sua região');
+        }
+        else if ($correiosWeightSum > 0 && $tablerateWeightSum > 0) {
+            $joinedRates = $this->prepareRateTablerateCorreios($tablerateRates,$correiosRates);        
+            $this->addRates($joinedRates, $result);
+        } 
+        else if ($correiosWeightSum > 0 && $tablerateWeightSum == 0) {
+            $this->addRates($correiosRates, $result);
+        } 
+        else if ($tablerateWeightSum > 0 && $correiosWeightSum == 0) {
+            $this->addRates($tablerateRates, $result);
+        }
+        else if ($tablerateWeightSum == 0 && $correiosWeightSum == 0) {
+            // when $product->getAttributeText('multicarrier_carrier') is not set, calc the rate based on correiosRates
+            $this->addRates($correiosRates, $result);
+        }
+       
+    }
 
-        // if ($tablerateWeightSum > 0) {
-            $tablerateRates = $this->getCarrierTransportadora($tablerateWeightSum, $destinationCep);
-            $correiosRates = $this->getCarrierCorreios($correiosWeightSum, $destinationCep, $correiosDimensionsSum); 
-
-            if ((($correiosWeightSum > 0) && count($correiosRates) == 0) || (($tablerateWeightSum > 0) && count($tablerateRates) == 0)) {
-                $this->addError($result, 'Não há frete disponível para sua região');
-            } else {
-                $this->addRates($tablerateRates, $result);
-                $this->addRates($correiosRates, $result);
-            }
-        // }
-        // } else {
+    private function prepareRateTablerateCorreios($tablerateRates, $correiosRates) {
+        // sum prices of tablerate and correios and get the maxdays of shipping between them
+        return [
+            [
+                'price' => $tablerateRates[0]["price"] + $correiosRates[0]["price"],
+                'days' => max($tablerateRates[0]["days"], $correiosRates[0]["days"])
+            ]
+        ];
+        
     }
 
     private function addRates($_services, $result) {
@@ -72,17 +89,16 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     }
 
     private function getCarrierCorreios($weight, $destinationCep, $result, $dimensionsSum) {
-
         $_services = null;
         $originPostcode = str_replace('-', '', trim(Mage::getStoreConfig("shipping/origin/postcode", $this->getStore())));
         $_services = $this->getShippingAmount($originPostcode, $destinationCep, $weight, $dimensionsSum);
-
-        foreach($_services as $service) {
-            $_shippingDaysExtra = floatval(Mage::getStoreConfig("carriers/webservicecorreios/shippingdaysextra"));
+        $_shippingDaysExtra = floatval(Mage::getStoreConfig("carriers/webservicecorreios/shippingdaysextra"));
+            
+        foreach($_services as &$service) {
             if ($_shippingDaysExtra > 0) 
                 $service["days"] += $_shippingDaysExtra; 
         }
-
+        
         return $_services;
     }
 
@@ -110,7 +126,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             //stored configs Tablerate
             $cubicCoefficient = Mage::getStoreConfig('carriers/multicarrier/tablerate_cubic_coefficient');
             $cubicLimit = Mage::getStoreConfig('carriers/multicarrier/tablerate_cubic_limit');
-             $cubicWeight = $dimensions['height'] * $dimensions['width'] * $dimensions['depth'] / $cubicCoefficient;
+            $cubicWeight = $dimensions['height'] * $dimensions['width'] * $dimensions['depth'] / $cubicCoefficient;
 
             // return weight of product multiplied by quantity of this item. If volume/coefficient is bigger than the limit, return it. if it is  smaller, return the product weight
              return ((($cubicWeight > $cubicLimit) ? $cubicWeight : $cartProduct->getWeight()) * $cartProduct->getQty());
@@ -266,6 +282,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     }
 
     public function restrictWeightForWebservice($weight) {
+        
         if ($weight == 0)
             $weight = 0.3;
 
