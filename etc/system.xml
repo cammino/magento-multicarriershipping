@@ -4,29 +4,21 @@
         <carriers>
             <groups>
                 <multicarrier translate="label" module="multicarriershipping">
-                    <label>Parâmetros para Tabela de Frete</label>
+                    <label>Multi Carrier</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>1</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
-                        <tablerate_cubic_coefficient translate="label">
-                            <label>Coeficiente para Peso Cúbico</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>2</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                        </tablerate_cubic_coefficient>
-                        <tablerate_cubic_limit translate="label">
-                            <label>Limite para Peso Cúbico</label>
+                        <title translate="label">
+                            <label>Title</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>3</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                        </tablerate_cubic_limit>
+                        </title>
                         <default_weight translate="label">
                             <label>Peso Padrão</label>
                             <frontend_type>text</frontend_type>
@@ -61,23 +53,40 @@
                         </default_depth>
                     </fields>
                 </multicarrier>
-                <webservicecorreios translate="label" module="multicarriershipping">
-                    <label>Web Service Correios</label>
+                <multicarrier_tablerate translate="label" module="multicarriershipping">
+                    <label>Multi Carrier - Tabela de Frete</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>2</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
-                        
-                        <title translate="label">
-                            <label>Title</label>
+                        <tablerate_cubic_coefficient translate="label">
+                            <label>Coeficiente para Peso Cúbico</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>2</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </tablerate_cubic_coefficient>
+                        <tablerate_cubic_limit translate="label">
+                            <label>Limite para Peso Cúbico</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>3</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                        </title>
+                        </tablerate_cubic_limit>
+                </fields>
+                </multicarrier_tablerate>
+                <webservicecorreios translate="label" module="multicarriershipping">
+                    <label>Multi Carrier - Web Service Correios</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>2</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
                         <user translate="label">
                             <label>User</label>
                             <frontend_type>text</frontend_type>
