@@ -28,18 +28,16 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             //get dimensions
             $dimensions = Mage::helper("multicarriershipping/custom")->getDimensions($product, $cartProduct->getQty());
 
-            // if the product config named multicarrier_carrier is not set, presume it is 
+            // if the product config named multicarrier_carrier is not set, presume it is correios
             if ($product->getAttributeText('multicarrier_carrier') == "Correios" or !$product->getAttributeText('multicarrier_carrier')) {
                 $correiosDimensionsSum = Mage::helper("multicarriershipping/custom")->getDimensionsSum($dimensionsSum, $dimensions);
-                // weight used by correios
                 $correiosWeightSum += ($cartProduct->getWeight() * $cartProduct->getQty());
              } else if ($product->getAttributeText('multicarrier_carrier') == "Tablerate") {
-
-                // weight used by tablerate
                 $tablerateWeightSum += Mage::helper("multicarriershipping/custom")->getWeightUsingDimensions($dimensions, $cartProduct);
             }
 
         }
+
         $this->chooseCarrier($tablerateWeightSum, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);        
 
         return $result;
@@ -54,13 +52,13 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         }
         else if ($correiosWeightSum > 0 && $tablerateWeightSum > 0) {
             $joinedRates = $this->prepareRateTablerateCorreios($tablerateRates,$correiosRates);        
-            $this->addRates($joinedRates, $result);
+            $this->addRates($joinedRates, $result, 'Transportadora');
         } 
         else if ($correiosWeightSum > 0 && $tablerateWeightSum == 0) {
             $this->addRates($correiosRates, $result);
         } 
         else if ($tablerateWeightSum > 0 && $correiosWeightSum == 0) {
-            $this->addRates($tablerateRates, $result);
+            $this->addRates($tablerateRates, $result, 'Transportadora');
         }
         else if ($tablerateWeightSum == 0 && $correiosWeightSum == 0) {
             // when $product->getAttributeText('multicarrier_carrier') is not set, calc the rate based on correiosRates
@@ -78,21 +76,20 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         ];
     }
 
-    private function addRates($_services, $result) {
+    private function addRates($_services, $result, $title = '') {
         $dataHelper = Mage::helper('multicarriershipping/custom');
         $error = Mage::getModel("shipping/rate_result_error");
         foreach($_services as $service) {
-            $this->addRateResult($result, $service["price"], $service["code"], $dataHelper->shippingDays($service["days"]), $_shippingTitlePrefix.Mage::helper("multicarriershipping/custom")->shippingTitle($service["code"]));
+           $this->addRateResult($result, $service["price"], $service["code"], $dataHelper->shippingDays($service["days"]), $title . Mage::helper("multicarriershipping/custom")->shippingTitle($service["code"]));
         }
     }
 
-    private function getCarrierCorreios($weight, $destinationCep, $result, $dimensionsSum) {
+    private function getCarrierCorreios($weight, $destinationCep, $dimensionsSum) {
         $_services = null;
         $originPostcode = str_replace('-', '', trim(Mage::getStoreConfig("shipping/origin/postcode", $this->getStore())));
         
         // assemble the url with the parameters for the correios web service
         $url = $this->getShippingAmount($originPostcode, $destinationCep, $weight, $dimensionsSum);
-
         // get xml given the url
         $_services = $this->getXml($url);
         $_shippingDaysExtra = floatval(Mage::getStoreConfig("carriers/webservicecorreios/shippingdaysextra"));
@@ -101,12 +98,11 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             if ($_shippingDaysExtra > 0) 
                 $service["days"] += $_shippingDaysExtra; 
         }
-        
-        return $_services;
+       return $_services;
     }
 
     private function getCarrierTransportadora($weight, $destinationCep) {
-         $modelTablerate = Mage::getModel("multicarriershipping/tablerate");
+        $modelTablerate = Mage::getModel("multicarriershipping/tablerate");
 
         $tablerate = $modelTablerate->getCollection()
         ->addFieldToFilter("zipcode_start", array("lteq" => intval($destinationCep)))
@@ -149,7 +145,6 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $url .= "&nVlDiametro=0";
         $url .= "&StrRetorno=xml";
         $url .= "&nIndicaCalculo=3";
-
         return $url;
         
     }

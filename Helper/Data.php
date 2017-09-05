@@ -16,30 +16,35 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 	//get all the dimensions of the product. If it isn`t filled, get store config in admin
     public function getDimensions($product, $quantity) {
         $dimensions = [
-            'width' => ($product->getWidth() != null ? $product->getWidth() : Mage::getStoreConfig('carriers/multicarrier/default_width')) * $quantity,
-            'height' => ($product->getHeight() != null ? $product->getHeight() : Mage::getStoreConfig('carriers/multicarrier/default_height')) * $quantity,
-            'depth' => ($product->getDepth() != null ? $product->getDepth() : Mage::getStoreConfig('carriers/multicarrier/default_depth')) * $quantity
+            'width' => ($product->getWidth() != null ? $product->getWidth() : Mage::getStoreConfig('carriers/multicarrier/default_width')),
+            'height' => ($product->getHeight() != null ? $product->getHeight() : Mage::getStoreConfig('carriers/multicarrier/default_height')),
+            'depth' => ($product->getDepth() != null ? $product->getDepth() : Mage::getStoreConfig('carriers/multicarrier/default_depth')) 
         ];
+
+        // multiply the lowest value by the quantity of similar itens
+        $minIndex = array_keys($dimensions, min($dimensions));
+        $dimensions[$minIndex[0]] *= $quantity;
+
         return $dimensions;
     }
 
-    public function getDimensionsSum($dimensionsSum, $dimensions) {
+    public function getDimensionsSum(&$dimensionsSum, $dimensions) {
         $dimensionsSum = [
             'width' => $dimensionsSum['width'] + $dimensions['width'],
             'height' => $dimensionsSum['height'] + $dimensions['height'],
             'depth' => $dimensionsSum['depth'] + $dimensions['depth']
         ];
+        
         return $dimensionsSum;
     }
 
     public function getWeightUsingDimensions($dimensions, $cartProduct) {
-	    //stored configs Tablerate
+        //stored configs Tablerate
 	    $cubicCoefficient = Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_coefficient');
 	    $cubicLimit = Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_limit');
 	    $cubicWeight = $dimensions['height'] * $dimensions['width'] * $dimensions['depth'] / $cubicCoefficient;
-
-	    // return weight of product multiplied by quantity of this item. If volume/coefficient is bigger than the limit, return it. if it is  smaller, return the product weight
-	     return ((($cubicWeight > $cubicLimit) ? $cubicWeight : $cartProduct->getWeight()) * $cartProduct->getQty());
+        // return weight of product multiplied by quantity of this item. If volume/coefficient is bigger than the limit, return it. if it is  smaller, return the product weight
+	     return ((($cubicWeight > $cubicLimit) ? $cubicWeight : $cartProduct->getWeight() * $cartProduct->getQty()));
     }
 
     public function shippingTitle($code)
@@ -98,13 +103,11 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 
     
     public function restrictWeightForWebservice($weight) {
-        
         if ($weight == 0)
             $weight = 0.3;
 
         if ($weight > 30)
             $weight = 30;
-
         //formated weight
         return (number_format($weight, 2, ',', ''));
     }
