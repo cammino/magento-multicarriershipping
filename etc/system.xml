@@ -12,7 +12,7 @@
                     <show_in_store>1</show_in_store>
                     <fields>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Título</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>3</sort_order>
                             <show_in_default>1</show_in_default>
@@ -63,6 +63,7 @@
                     <fields>
                         <tablerate_cubic_coefficient translate="label">
                             <label>Coeficiente para Peso Cúbico</label>
+                            <comment>Valor usado na fórmula pesoCubico = (volume / coeficientePesoCubico), fornecido geralmente pela empresa responsável pela entrega dos produtos</comment>
                             <frontend_type>text</frontend_type>
                             <sort_order>2</sort_order>
                             <show_in_default>1</show_in_default>
@@ -71,6 +72,7 @@
                         </tablerate_cubic_coefficient>
                         <tablerate_cubic_limit translate="label">
                             <label>Limite para Peso Cúbico</label>
+                            <comment>Se peso cúbico > limite para peso cúbico, usa-se o peso cúbico. Do contrário, usa-se o peso do produto.</comment>
                             <frontend_type>text</frontend_type>
                             <sort_order>3</sort_order>
                             <show_in_default>1</show_in_default>

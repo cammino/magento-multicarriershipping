@@ -11,5 +11,14 @@ $ cp app/code/community/Cammino/Multicarriershipping/Cammino_Multicarriershippin
 $ cp app/code/community/Cammino/Multicarriershipping/tablerate.xml app/design/adminhtml/default/default/layout/tablerate.xml #Block layout declaration
 ```
 
+# Initial Configs
+Create the following attributes and link them with your products:  
+* width, height, depth (text with decimal number validation);  
+* multicarrier_carrier (combobox with options 'Correios', 'Tablerate');
+
+Go to `System -> Configuration -> Carriers` and set the desired configs inside the three main tabs of the module: 
+* Multi Carrier; 
+* Multi Carrier - Tabela de Frete;
+* Multi Carrier - Web Service Correios;
 # Usage
 You can easily find the Tablerate config inside the admin console of Magento, menu Sales, Table Rate (Tabela de Fretes)
