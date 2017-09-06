@@ -79,6 +79,15 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </tablerate_cubic_limit>
+                        <max_weight translate="label">
+                            <label>Peso Máximo para Cotação de Frete</label>
+                            <comment>Se peso do carrinho exceder este valor, haverá mais de uma cotação</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>4</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </max_weight>
                 </fields>
                 </multicarrier_tablerate>
                 <webservicecorreios translate="label" module="multicarriershipping">

@@ -72,8 +72,13 @@
                 <sort_order>2</sort_order>
                 <showmethod>1</showmethod>
             </multicarrier>
+            <multicarrier_tablerate>                
+                <max_weight>9999</max_weight>         
+            </multicarrier_tablerate>      
         </carriers>
+        
     </default>
+   
   	<frontend>
         <routers>
             <multicarriershipping>

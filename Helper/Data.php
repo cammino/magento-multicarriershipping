@@ -13,21 +13,22 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 			return "$days dias úteis";
 		}
 	}
-	//get all the dimensions of the product. If it isn`t filled, get store config in admin
-    public function getDimensions($product, $quantity) {
+    // pega todas as dimensões do produto e se nao estiverem setadas, pega a StoreConfig (default) das mesmas
+	public function getDimensions($product, $quantity) {
         $dimensions = [
             'width' => ($product->getWidth() != null ? $product->getWidth() : Mage::getStoreConfig('carriers/multicarrier/default_width')),
             'height' => ($product->getHeight() != null ? $product->getHeight() : Mage::getStoreConfig('carriers/multicarrier/default_height')),
             'depth' => ($product->getDepth() != null ? $product->getDepth() : Mage::getStoreConfig('carriers/multicarrier/default_depth')) 
         ];
 
-        // multiply the lowest value by the quantity of similar itens
+        // multiplica o valor da menor dimensão pela quantidade de itens iguais do carrinho
         $minIndex = array_keys($dimensions, min($dimensions));
         $dimensions[$minIndex[0]] *= $quantity;
 
         return $dimensions;
     }
 
+    // soma as dimensões dos produtos do carrinho
     public function getDimensionsSum(&$dimensionsSum, $dimensions) {
         $dimensionsSum = [
             'width' => $dimensionsSum['width'] + $dimensions['width'],
@@ -43,10 +44,40 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 	    $cubicCoefficient = Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_coefficient');
 	    $cubicLimit = Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_limit');
 	    $cubicWeight = $dimensions['height'] * $dimensions['width'] * $dimensions['depth'] / $cubicCoefficient;
-        // return weight of product multiplied by quantity of this item. If volume/coefficient is bigger than the limit, return it. if it is  smaller, return the product weight
-	     return ((($cubicWeight > $cubicLimit) ? $cubicWeight : $cartProduct->getWeight() * $cartProduct->getQty()));
+        
+
+	     $maxWeight = Mage::getStoreConfig('carriers/multicarrier_tablerate/max_weight');
+        
+        // se (volume/coefficient) é maior que o limite, usa-o, do contrário, usa o preço do produto
+        if ($cubicWeight > $cubicLimit) {
+            return $this->getTablerateRoundsAndWeights($cubicWeight, $maxWeight);
+        }
+        else {
+            $productsWeight = $cartProduct->getWeight() * $cartProduct->getQty();
+            return $this->getTablerateRoundsAndWeights($productsWeight, $maxWeight);            
+        }
     }
 
+
+    public function getTablerateRoundsAndWeights($productWeight, $maxWeight) {
+        // limitWeight: limite de peso especificado no painel administrativo
+        // rounds: quantas vezes o peso é maior que o limite. Ex: 4 = 130 / 30
+        // lastWeight: resto da divisão, peso extra. Ex: 10 = 130 % 30
+        // No exemplo acima, o maxWeight (30) será usado 4x e o lastWeight (10) será usado 1x
+        if ($productWeight > $maxWeight) {
+            return [
+                'limitWeight' => $maxWeight,
+                'rounds' => floor($productWeight / $maxWeight),
+                'lastWeight' => $productWeight % $maxWeight
+            ];
+        } else {
+            return [
+                'limitWeight' => $maxWeight,
+                'rounds' => 0,
+                'lastWeight' => $productWeight
+            ]; 
+        } 
+    }
     public function shippingTitle($code)
     {
         switch ($code) {
@@ -103,38 +134,39 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 
     
     public function restrictWeightForWebservice($weight) {
+        //peso formatado, não excedendo mais do que 30 kg e não nulo
         if ($weight == 0)
             $weight = 0.3;
 
         if ($weight > 30)
             $weight = 30;
-        //formated weight
+        
         return (number_format($weight, 2, ',', ''));
     }
 
     public function restrictDimensionsForWebservice($dimensions) {
-        // depth can't be less than 16 and more than 105
+        // comprimento no intervalo -> 16 <= comprimento <= 105
         if ($dimensions['depth'] < 16)
             $dimensions['depth'] = 16;
         
        if ($dimensions['depth'] > 105)
             $dimensions['depth'] = 105;
         
-        // height can't be less than 2 and more than 105
+        // altura no intervalo -> 2 <= altura <= 105
         if ($dimensions['height'] < 2)
             $dimensions['height'] = 2;
 
         if ($dimensions['height'] > 105)
             $dimensions['height'] = 105;
 
-        // width can't be less than 11 and more than 105
+        // largura no intervalo -> 11 <= largura <= 105
         if ($dimensions['width'] < 11)
             $dimensions['width'] = 11;
 
         if ($dimensions['width'] > 105)
             $dimensions['width'] =  105;
         
-        // if sum if dimensions is higher than 200, make them 66
+        // se soma das dimensões for maior que 200, atribui 66 a todas as dimensões
         if (($dimensions['width']+$dimensions['depth']+$dimensions['height']) > 200) {
             $dimensions['width'] = 66;
             $dimensions['depth'] = 66;
@@ -142,7 +174,4 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
         }
         return $dimensions;
     }
-
-    
-
 }
