@@ -15,11 +15,11 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 	}
     // pega todas as dimensões do produto e se nao estiverem setadas, pega a StoreConfig (default) das mesmas
 	public function getDimensions($product, $quantity) {
-        $dimensions = [
+        $dimensions = array(
             'width' => ($product->getWidth() != null ? $product->getWidth() : Mage::getStoreConfig('carriers/multicarrier/default_width')),
             'height' => ($product->getHeight() != null ? $product->getHeight() : Mage::getStoreConfig('carriers/multicarrier/default_height')),
             'depth' => ($product->getDepth() != null ? $product->getDepth() : Mage::getStoreConfig('carriers/multicarrier/default_depth')) 
-        ];
+        );
 
         // multiplica o valor da menor dimensão pela quantidade de itens iguais do carrinho
         $minIndex = array_keys($dimensions, min($dimensions));
@@ -30,11 +30,11 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 
     // soma as dimensões dos produtos do carrinho
     public function getDimensionsSum(&$dimensionsSum, $dimensions) {
-        $dimensionsSum = [
+        $dimensionsSum = array(
             'width' => $dimensionsSum['width'] + $dimensions['width'],
             'height' => $dimensionsSum['height'] + $dimensions['height'],
             'depth' => $dimensionsSum['depth'] + $dimensions['depth']
-        ];
+        );
         
         return $dimensionsSum;
     }
@@ -65,17 +65,17 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
         // lastWeight: resto da divisão, peso extra. Ex: 10 = 130 % 30
         // No exemplo acima, o maxWeight (30) será usado 4x e o lastWeight (10) será usado 1x
         if ($productWeight > $maxWeight) {
-            return [
+            return array(
                 'limitWeight' => $maxWeight,
                 'rounds' => floor($productWeight / $maxWeight),
                 'lastWeight' => $productWeight % $maxWeight
-            ];
+            );
         } else {
-            return [
+            return array(
                 'limitWeight' => $maxWeight,
                 'rounds' => 0,
                 'lastWeight' => $productWeight
-            ]; 
+            ); 
         } 
     }
     public function shippingTitle($code)

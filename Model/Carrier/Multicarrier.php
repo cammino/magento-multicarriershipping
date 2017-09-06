@@ -5,7 +5,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     
     public function collectRates(Mage_Shipping_Model_Rate_Request $request) { 
         $result = Mage::getModel("shipping/rate_result");
-        $dimensionsSum = [];
+        $dimensionsSum = array();
         
         //pega cep fornecido pelo usuário
         $destinationCep = str_replace('-', '', trim($request->getDestPostcode()));      
@@ -13,7 +13,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         //pega todos os produtos no carrinho
         $cartProducts = Mage::getSingleton('checkout/session')->getQuote()->getAllItems(); 
 
-        $tablerateWeightSum = [];
+        $tablerateWeightSum = array();
         $correiosDimensionsSum = 0;
         $correiosWeightSum = 0;
 
@@ -69,12 +69,12 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     private function prepareRateTablerateCorreios($tablerateRates, $correiosRates) {
         // price: soma valores da tablerate e dos correios
         // days: valor máximo entre as cotações
-        return [
-            [
+        return array(
+            array(
                 'price' => $tablerateRates[0]["price"] + $correiosRates[0]["price"],
                 'days' => max($tablerateRates[0]["days"], $correiosRates[0]["days"])
-            ]
-        ];
+            )
+        );
     }
 
     private function addRates($_services, $result, $title = '') {
@@ -129,10 +129,10 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             ->setOrder("zipcode_start","DESC");
             
             if ($tablerate->getFirstitem()->getPrice() != NULL) {
-                return [
+                return array(
                     'price' =>  $tablerate->getFirstitem()->getPrice(),
                     'days'  =>  $tablerate->getFirstitem()->getShippingDays(),
-                ];
+                );
             }
     }
 
