@@ -15,6 +15,9 @@ $ cp app/code/community/Cammino/Multicarriershipping/tablerate.xml app/design/ad
 Create the following attributes and link them with your products:  
 * width, height, depth (text with decimal number validation);  
 * multicarrier_carrier (combobox with options 'Correios', 'Tablerate');
+* multicarrier_group (combobox)
+
+You have to change the default source model in which the multicarrier_group will get the groups. Open your database and search for the field `multicarrier_group` inside eav_attribute table. In source_model column, change its value to `multicarriershipping/source_tablerate_groups`
 
 Go to `System -> Configuration -> Carriers` and set the desired configs inside the three main tabs of the module: 
 * Multi Carrier; 
