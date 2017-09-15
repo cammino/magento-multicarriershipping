@@ -13,57 +13,83 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         //pega todos os produtos no carrinho
         $cartProducts = Mage::getSingleton('checkout/session')->getQuote()->getAllItems(); 
 
-        $tablerateWeightSum = array();
+        $tablerateRates = array();
         $correiosDimensionsSum = 0;
         $correiosWeightSum = 0;
 
          //para cada produto no carrinho
         foreach($cartProducts as $cartProduct) {
             $product =  Mage::getModel('catalog/product')->load($cartProduct->getProductId());
-
             // se é produto configurável, pula o pai
             if ($cartProduct->getParentItem()) continue;
-
             // pega as dimensões baseado na quantidade de produtos iguais no carrinho
             $dimensions = Mage::helper("multicarriershipping/custom")->getDimensions($product, $cartProduct->getQty());
-
             // se a config "multicarrier_carrier" não estiver setada, assume-se que seja "correios"
             if ($product->getAttributeText('multicarrier_carrier') == "Correios" or !$product->getAttributeText('multicarrier_carrier')) {
                 $correiosDimensionsSum = Mage::helper("multicarriershipping/custom")->getDimensionsSum($dimensionsSum, $dimensions);
                 $correiosWeightSum += ($cartProduct->getWeight() * $cartProduct->getQty());
              } else if ($product->getAttributeText('multicarrier_carrier') == "Tablerate") {
-                $tablerateWeightSum[] = Mage::helper("multicarriershipping/custom")->getWeightUsingDimensions($dimensions, $cartProduct);
+                $tablerateProductWeight = Mage::helper("multicarriershipping/custom")->getWeightUsingDimensions($dimensions, $cartProduct);
+                $tablerateRates = array_merge($tablerateRates, $this->getCarrierTransportadora($tablerateProductWeight, $destinationCep, $product->getAttributeText('multicarrier_group')));
+
             }
         }
-        $this->chooseCarrier($tablerateWeightSum, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);        
+        $this->chooseCarrier($tablerateRates, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);        
 
         return $result;
     }
 
-    private function chooseCarrier($tablerateWeightSum, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result) {
-       
-        // exibe as cotações de frete de acordo acom o tipo de transportadora correspondente (tablerate or correios) 
-        $tablerateRates = $this->getCarrierTransportadora($tablerateWeightSum, $destinationCep);
+    private function chooseCarrier($tablerateRates, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result) {
+
+        // exibe as cotações de frete dos correios
         $correiosRates = $this->getCarrierCorreios($correiosWeightSum, $destinationCep, $correiosDimensionsSum); 
-
-
-        if ((($correiosWeightSum > 0) && count($correiosRates) == 0) || ((!empty($tablerateWeightSum)) && count($tablerateRates) == 0)) {
+        
+        // caso não haja cotação para aquela localidade
+        if ((($correiosWeightSum > 0) && count($correiosRates) == 0) || ((!is_array($tablerateRates)) && count($tablerateRates) == 0)) {
             $this->addError($result, 'Não há frete disponível para sua região');
         }
-        else if ($correiosWeightSum > 0 && !empty($tablerateWeightSum)) {
+
+        // se tiver produto(s) no carrinho com multicarrier_carrier="correios" e multicarrier_carrier="tablerate"
+        else if ($correiosWeightSum > 0 && !empty($tablerateRates)) {
+            $tablerateRates = $this->sumAllTablerate($tablerateRates);
             $joinedRates = $this->prepareRateTablerateCorreios($tablerateRates,$correiosRates);        
             $this->addRates($joinedRates, $result, 'Transportadora');
         } 
-        else if ($correiosWeightSum > 0 && empty($tablerateWeightSum)) {
+
+        // se tiver somente produto(s) no carrinho com multicarrier_carrier="correios"
+        else if ($correiosWeightSum > 0 && empty($tablerateRates)) {
             $this->addRates($correiosRates, $result);
         } 
-        else if (!empty($tablerateWeightSum) && $correiosWeightSum == 0) {
+
+        // se tiver somente produto(s) no carrinho com multicarrier_carrier="tablerate"
+        else if (!empty($tablerateRates) && $correiosWeightSum == 0) {
+            $tablerateRates = $this->sumAllTablerate($tablerateRates);
             $this->addRates($tablerateRates, $result, 'Transportadora');
         }
-        else if (empty($tablerateWeightSum) && $correiosWeightSum == 0) {
-            // quando $product->getAttributeText('multicarrier_carrier') não tiver setada, calcula a cotação baseada no correiosRates
+
+        // se tiver somente produto(s) no carrinho com multicarrier_carrier=NULL, calcula a cotação baseada no correiosRates
+        else if (empty($tablerateRates) && $correiosWeightSum == 0) {
             $this->addRates($correiosRates, $result);
         }
+       
+    }
+
+    // função responsável por somar todos os produtos com carrier = transportadora
+    private function sumAllTablerate($tablerateRates) {
+        foreach ($tablerateRates as $rates) {
+            $price += $rates['price']; 
+            $days = array_reduce($rates, function($max, $rates) {
+                return max($max, $rates['days']);
+            }, 0);
+        }
+         
+         return array(
+            array(
+                'price' => $price,
+                'days' => $days
+                )
+            );
+
     }
 
     private function prepareRateTablerateCorreios($tablerateRates, $correiosRates) {
@@ -104,35 +130,40 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
        return $_services;
     }
 
-    private function getCarrierTransportadora($weightList, $destinationCep) {
+    private function getCarrierTransportadora($weightList, $destinationCep, $group) {
         $modelTablerate = Mage::getModel("multicarriershipping/tablerate");
-        foreach ($weightList as $weight) {
-            for ($rounds = 0; $rounds < $weight['rounds']; $rounds++) {
-                $priceAndDays = $this->getTableratePriceDays($weight['limitWeight'], $destinationCep, $modelTablerate);
+            for ($rounds = 0; $rounds < $weightList['rounds']; $rounds++) {
+                $priceAndDays = $this->getTableratePriceDays($weightList['limitWeight'], $destinationCep, $modelTablerate, $group);
+                if ($priceAndDays == NULL) return;
                 $price += $priceAndDays['price'];
+                
                 $days = max($days, $priceAndDays['days']);  
             }
-
-            $priceAndDays = $this->getTableratePriceDays($weight['lastWeight'], $destinationCep, $modelTablerate);
+            $priceAndDays = $this->getTableratePriceDays($weightList['lastWeight'], $destinationCep, $modelTablerate, $group);
             $price += $priceAndDays['price'];
             $days = max($days, $priceAndDays['days']);
-        }
+       
+
+
         return array(array("price" => $price, "days" => $days)); 
     }
 
-    private function getTableratePriceDays($weight, $cep, $modelTablerate) {
+    private function getTableratePriceDays($weight, $cep, $modelTablerate, $group) {
         $tablerate = $modelTablerate->getCollection()
             ->addFieldToFilter("zipcode_start", array("lteq" => intval($cep)))
             ->addFieldToFilter("zipcode_end", array("gteq" => intval($cep)))
             ->addFieldToFilter("weight_start", array("lteq" => $weight))
             ->addFieldToFilter("weight_end", array("gteq" => $weight))
+            ->addFieldToFilter("group", $group)
             ->setOrder("zipcode_start","DESC");
-            
             if ($tablerate->getFirstitem()->getPrice() != NULL) {
                 return array(
                     'price' =>  $tablerate->getFirstitem()->getPrice(),
                     'days'  =>  $tablerate->getFirstitem()->getShippingDays(),
                 );
+            }
+            else {
+                return null;
             }
     }
 
@@ -191,6 +222,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     }
 
     private function addRateResult($result, $shippingPrice, $shippingCode, $shippingDays, $shippingTitle) {
+
         $method = Mage::getModel("shipping/rate_result_method");
         $method->setCarrier("multicarrier");
         $method->setCarrierTitle(Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_coefficient'));

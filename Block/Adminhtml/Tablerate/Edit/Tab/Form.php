@@ -1,5 +1,5 @@
 <?php
-
+// formulario para adicionar tablerate
 class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Edit_Tab_Form extends Mage_Adminhtml_Block_Widget_Form
 {
 	protected function _prepareForm()
@@ -62,6 +62,14 @@ class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Edit_Tab_Form exten
 			'class'     => 'validate-number',
 		));
 
+		$fieldset->addField('group', 'select', array(
+			'label'     => Mage::helper('multicarriershipping')->__('Group'),
+			'class'     => 'required-entry',
+			'required'  => true,
+			'name'      => 'group',
+			'values'    => Mage::getModel('multicarriershipping/source_tablerate_groups')->getAllGroups(true)
+		));
+
 		if (Mage::getSingleton('adminhtml/session')->getTablerateData()) {
 			$form->setValues(Mage::getSingleton('adminhtml/session')->getTablerateData());
 			Mage::getSingleton('adminhtml/session')->setTablerateData(null);
@@ -70,5 +78,4 @@ class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Edit_Tab_Form exten
 		}
 		return parent::_prepareForm();
 	}
-	
 }

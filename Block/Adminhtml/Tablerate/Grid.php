@@ -70,6 +70,12 @@ class Cammino_Multicarriershipping_Block_Adminhtml_Tablerate_Grid extends Mage_A
 			'index'     => 'shipping_days',
 		));
 
+		$this->addColumn('group', array(
+			'header'    => Mage::helper('multicarriershipping')->__('Group'),
+			'align'     =>'left',
+			'index'     => 'group',
+		));
+
 		$this->addColumn('action',
 			array(
 				'header'    =>  Mage::helper('multicarriershipping')->__('Action'),
