@@ -11,7 +11,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $destinationCep = str_replace('-', '', trim($request->getDestPostcode()));      
         
         //pega todos os produtos no carrinho
-        $cartProducts = Mage::getSingleton('checkout/session')->getQuote()->getAllItems(); 
+        $cartProducts = $request->getAllItems(); 
 
         $tablerateRates = array();
         $correiosDimensionsSum = 0;
