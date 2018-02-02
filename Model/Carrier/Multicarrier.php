@@ -87,7 +87,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             $price += $rates['price']; 
         }
 
-        $days = array_reduce($rates, function($max, $rates) {
+        $days = array_reduce($tablerateRates, function($max, $rates) {
             return max($max, $rates['days']);
         }, 0);
          
