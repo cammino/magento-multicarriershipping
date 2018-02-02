@@ -2,10 +2,17 @@
 class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipping_Model_Carrier_Abstract implements Mage_Shipping_Model_Carrier_Interface {
 
     protected $_code = "multicarrier";
+    private $_request = null;
+
+    private function getRequest() {
+        return $this->_request;
+    }
     
     public function collectRates(Mage_Shipping_Model_Rate_Request $request) { 
         $result = Mage::getModel("shipping/rate_result");
         $dimensionsSum = array();
+
+        $this->_request = $request;
         
         //pega cep fornecido pelo usuário
         $destinationCep = str_replace('-', '', trim($request->getDestPostcode()));      
@@ -107,6 +114,11 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     private function addRates($_services, $result, $title = '') {
         $dataHelper = Mage::helper('multicarriershipping/custom');
         $error = Mage::getModel("shipping/rate_result_error");
+
+        if (($this->getRequest()->getFreeShipping() === true) && (count($_services) > 0)) {
+            $_services[0]["price"] = 0;
+        }
+
         foreach($_services as $service) {
            $this->addRateResult($result, $service["price"], $service["code"], $dataHelper->shippingDays($service["days"]), $title . Mage::helper("multicarriershipping/custom")->shippingTitle($service["code"]));
         }
