@@ -78,10 +78,11 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     private function sumAllTablerate($tablerateRates) {
         foreach ($tablerateRates as $rates) {
             $price += $rates['price']; 
-            $days = array_reduce($rates, function($max, $rates) {
-                return max($max, $rates['days']);
-            }, 0);
         }
+
+        $days = array_reduce($rates, function($max, $rates) {
+            return max($max, $rates['days']);
+        }, 0);
          
          return array(
             array(
