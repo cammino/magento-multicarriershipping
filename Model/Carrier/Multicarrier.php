@@ -52,7 +52,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $correiosRates = $this->getCarrierCorreios($correiosWeightSum, $destinationCep, $correiosDimensionsSum); 
         
         // caso não haja cotação para aquela localidade
-        if ((($correiosWeightSum > 0) && count($correiosRates) == 0) || ((!is_array($tablerateRates)) && count($tablerateRates) == 0)) {
+        if ((($correiosWeightSum > 0) && count($correiosRates) == 0) || ( $tablerateRates[0]['price'] == 0 && !$tablerateRates[0]['days'])) {
             $this->addError($result, 'Não há frete disponível para sua região');
         }
 
