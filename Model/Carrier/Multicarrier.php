@@ -9,6 +9,8 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     }
     
     public function collectRates(Mage_Shipping_Model_Rate_Request $request) { 
+        Mage::log("----------MÓDULO MULTICARRIER; FUNÇÃO collectRates---------", null, "frete.log");
+        
         $result = Mage::getModel("shipping/rate_result");
         $dimensionsSum = array();
 
@@ -31,6 +33,9 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             if ($cartProduct->getParentItem()) continue;
             // pega as dimensões baseado na quantidade de produtos iguais no carrinho
             $dimensions = Mage::helper("multicarriershipping/custom")->getDimensions($product, $cartProduct->getQty());
+            Mage::log("multicarrier:collectRates -> dimensions ", null, "frete.log");
+            Mage::log($dimensions, null, "frete.log");
+            Mage::log("multicarrier:collectRates -> product->getAttributeText('multicarrier_carrier')" . $product->getAttributeText('multicarrier_carrier'), null, "frete.log");
             // se a config "multicarrier_carrier" não estiver setada, assume-se que seja "correios"
             if ($product->getAttributeText('multicarrier_carrier') == "Correios" or !$product->getAttributeText('multicarrier_carrier')) {
                 $correiosDimensionsSum = Mage::helper("multicarriershipping/custom")->getDimensionsSum($dimensionsSum, $dimensions);
@@ -41,7 +46,8 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
 
             }
         }
-        $this->chooseCarrier($tablerateRates, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);        
+        Mage::log("multicarrier:collectRates -> correiosDimensionsSum; correiosWeightSum; destinationCep " . $correiosDimensionsSum . '; ' . $correiosWeightSum . '; ' .  $destinationCep, null, 'frete.log');
+                $this->chooseCarrier($tablerateRates, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);        
 
         return $result;
     }
@@ -88,7 +94,10 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         else if (empty($tablerateRates) && $correiosWeightSum == 0) {
             $this->addRates($correiosRates, $result);
         }
-       
+       Mage::log("multicarrier:chooseCarrier -> correiosRates: " , null, "frete.log");
+       Mage::log($correiosRates, null, "frete.log");
+       Mage::log("multicarrier:chooseCarrier -> tablerateRates: ", null, "frete.log");
+       Mage::log($tablerateRates, null, "frete.log");
     }
 
     // função responsável por somar todos os produtos com carrier = transportadora
@@ -140,10 +149,11 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         
         //  monta a url com os parâmetros necessários pra o Web Service dos correios
         $url = $this->getShippingAmount($originPostcode, $destinationCep, $weight, $dimensionsSum);
-        
+        Mage::log("multicarrier:getCarrierCorreios -> url: " . $url, null, "frete.log");
         // pega o xml de retorno dos correios
         $_services = $this->getXml($url);
-        
+        Mage::log("multicarrier:getCarrierCorreios -> _services: " , null, "frete.log");
+        Mage::log($_services, null, 'frete.log');
         // caso a config de dias extras esteja setada, atualiza quantidade de dias de cada serviço
         $_shippingDaysExtra = floatval(Mage::getStoreConfig("carriers/webservicecorreios/shippingdaysextra"));
         foreach($_services as &$service) {
@@ -155,6 +165,9 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
 
     private function getCarrierTransportadora($weightList, $destinationCep, $group) {
         $modelTablerate = Mage::getModel("multicarriershipping/tablerate");
+        Mage::log("multicarrier:getCarrierTransportadora -> weightList[rounds]: " , null, "frete.log");
+        Mage::log($weightList['rounds'] , null, "frete.log");
+        
             for ($rounds = 0; $rounds < $weightList['rounds']; $rounds++) {
                 $priceAndDays = $this->getTableratePriceDays($weightList['limitWeight'], $destinationCep, $modelTablerate, $group);
                 if ($priceAndDays == NULL) return;
@@ -163,9 +176,12 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
                 $days = max($days, $priceAndDays['days']);  
             }
             $priceAndDays = $this->getTableratePriceDays($weightList['lastWeight'], $destinationCep, $modelTablerate, $group);
+            Mage::log("multicarrier:getCarrierTransportadora -> priceAndDays ", null, "frete.log");
+            Mage::log($priceAndDays , null, "frete.log");
+        
             $price += $priceAndDays['price'];
             $days = max($days, $priceAndDays['days']);
-       
+            Mage::log("multicarrier:getCarrierTransportadora -> days: " .  $days, null, "frete.log");
 
 
         return array(array("price" => $price, "days" => $days)); 
@@ -180,6 +196,11 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             ->addFieldToFilter("group", $group)
             ->setOrder("zipcode_start","DESC");
             if ($tablerate->getFirstitem()->getPrice() != NULL) {
+                Mage::log("multicarrier:getTableratePriceDays -> tablerate->getFirstitem()->getPrice(): ", null, "frete.log");
+                Mage::log($tablerate->getFirstitem()->getPrice(), null, "frete.log");
+                Mage::log("multicarrier:getTableratePriceDays -> tablerate->getFirstitem()->getShippingDays(): ", null, "frete.log");
+                Mage::log($tablerate->getFirstitem()->getShippingDays(), null, "frete.log");           
+
                 return array(
                     'price' =>  $tablerate->getFirstitem()->getPrice(),
                     'days'  =>  $tablerate->getFirstitem()->getShippingDays(),
@@ -216,6 +237,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $url .= "&nVlDiametro=0";
         $url .= "&StrRetorno=xml";
         $url .= "&nIndicaCalculo=3";
+        Mage::log("multicarrier: getShippingAmount -> url " .  $url, null, "frete.log");
         return $url;
         
     }
@@ -223,6 +245,9 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
     public function getXml($url) {
         $content = file_get_contents($url);
         $xml = simplexml_load_string($content);
+        Mage::log("multicarrier: getXml -> xml ", null, "frete.log");
+        Mage::log($xml, null, "frete.log");
+        
         $services = null;
 
         foreach ($xml->cServico as $cServico) {
@@ -262,6 +287,9 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $error->setCarrierTitle('Transportadora');
         $error->setErrorMessage("$errorMessage");
         $result->append($error);
+        Mage::log("multicarrier:addError -> error: " , null, "frete.log");
+        Mage::log($error, null, 'frete.log');
+        
     }
     
     public function getAllowedMethods() {
