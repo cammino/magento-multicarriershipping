@@ -39,7 +39,7 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
         return $dimensionsSum;
     }
 
-    public function getWeightUsingDimensions($dimensions, $cartProduct) {
+    public function getWeightUsingDimensions($dimensions, $cartProduct, $fixQty = null) {
         //stored configs Tablerate
 	    $cubicCoefficient = Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_coefficient');
 	    $cubicLimit = Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_limit');
@@ -53,7 +53,8 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
             return $this->getTablerateRoundsAndWeights($cubicWeight, $maxWeight);
         }
         else {
-            $productsWeight = $cartProduct->getWeight() * $cartProduct->getQty();
+            $qty = ($fixQty != null) ? $fixQty : $cartProduct->getQty();
+            $productsWeight = $cartProduct->getWeight() * $qty;
             return $this->getTablerateRoundsAndWeights($productsWeight, $maxWeight);            
         }
     }
