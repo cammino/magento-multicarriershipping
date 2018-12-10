@@ -8,9 +8,9 @@ class Cammino_Multicarriershipping_Helper_Data extends Mage_Core_Helper_Abstract
 	
 	public function shippingDays($days) {
 		if(intval($days) == 1) {
-			return "um dia útil";
+			return "um dia útil. PEDIDOS FEITOS ENTRE OS DIAS 14/12 E 06/01 SÓ SERÃO ENVIADOS NA PRIMEIRA QUINZENA DE JANEIRO.";
 		} else {
-			return "$days dias úteis";
+			return "$days dias úteis. PEDIDOS FEITOS ENTRE OS DIAS 14/12 E 06/01 SÓ SERÃO ENVIADOS NA PRIMEIRA QUINZENA DE JANEIRO.";
 		}
 	}
     // pega todas as dimensões do produto e se nao estiverem setadas, pega a StoreConfig (default) das mesmas
