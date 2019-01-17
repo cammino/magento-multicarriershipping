@@ -262,8 +262,8 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $services = null;
 
         foreach ($xml->cServico as $cServico) {
-
-            if ((strval($cServico->MsgErro) != "") && (intval($cServico->Erro) != 10))
+            
+            if ((strval($cServico->MsgErro) != "") && (intval($cServico->Erro) != 9) && (intval($cServico->Erro) != 10) && (intval($cServico->Erro) != 11))
                 continue;
 
             $services[] = array (
