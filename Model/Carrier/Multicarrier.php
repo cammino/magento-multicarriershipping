@@ -154,10 +154,13 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $originPostcode = str_replace('-', '', trim(Mage::getStoreConfig("shipping/origin/postcode", $this->getStore())));
         
         //  monta a url com os parâmetros necessários pra o Web Service dos correios
-        $url = $this->getShippingAmount($originPostcode, $destinationCep, $weight, $dimensionsSum);
+        $urls = $this->getShippingAmount($originPostcode, $destinationCep, $weight, $dimensionsSum);
+
         Mage::log("multicarrier:getCarrierCorreios -> url: " . $url, null, "frete.log");
+        
         // pega o xml de retorno dos correios
-        $_services = $this->getXml($url);
+        $_services = $this->getXml($urls);
+        
         Mage::log("multicarrier:getCarrierCorreios -> _services: " , null, "frete.log");
         Mage::log($_services, null, 'frete.log');
         // caso a config de dias extras esteja setada, atualiza quantidade de dias de cada serviço
@@ -166,7 +169,8 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             if ($_shippingDaysExtra > 0) 
                 $service["days"] += $_shippingDaysExtra; 
         }
-       return $_services;
+    
+        return $_services;
     }
 
     private function getCarrierTransportadora($weightList, $destinationCep, $group, $qty = null) {
@@ -231,47 +235,65 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $_services = Mage::getStoreConfig('carriers/webservicecorreios/services');
         $_user = Mage::getStoreConfig('carriers/webservicecorreios/user');
         $_pass = Mage::getStoreConfig('carriers/webservicecorreios/pass');
-         $url = "http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx";
-        $url .= "?nCdEmpresa=" . $_user;
-        $url .= "&sDsSenha=" . $_pass;
-        $url .= "&nCdServico=" . $_services;
-        $url .= "&sCepOrigem=" . $originPostcode;
-        $url .= "&sCepDestino=" . $destPostcode;
-        $url .= "&nVlPeso=" . $formatedWeight;
-        $url .= "&nCdFormato=1";
-        $url .= "&nVlComprimento=" . $dimensions['depth'];
-        $url .= "&nVlAltura=" . $dimensions['height'];
-        $url .= "&nVlLargura=" . $dimensions['width'];
-        $url .= "&sCdMaoPropria=n";
-        $url .= "&nVlValorDeclarado=0";
-        $url .= "&sCdAvisoRecebimento=n";
-        $url .= "&nVlDiametro=0";
-        $url .= "&StrRetorno=xml";
-        $url .= "&nIndicaCalculo=3";
-        Mage::log("multicarrier: getShippingAmount -> url " .  $url, null, "frete.log");
-        return $url;
+
+        if (strpos($_services, ',') !== false) {
+            $_services = explode(",", $_services);
+        } else {
+            $_services = array($_services);
+        }
+
+        $urls = array();
+
+        $i = 0;
+        foreach($_services as $_service):
+            $urls[$i] = "http://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx";
+            $urls[$i] .= "?nCdEmpresa=" . $_user;
+            $urls[$i] .= "&sDsSenha=" . $_pass;
+            $urls[$i] .= "&nCdServico=" . $_service;
+            $urls[$i] .= "&sCepOrigem=" . $originPostcode;
+            $urls[$i] .= "&sCepDestino=" . $destPostcode;
+            $urls[$i] .= "&nVlPeso=" . $formatedWeight;
+            $urls[$i] .= "&nCdFormato=1";
+            $urls[$i] .= "&nVlComprimento=" . $dimensions['depth'];
+            $urls[$i] .= "&nVlAltura=" . $dimensions['height'];
+            $urls[$i] .= "&nVlLargura=" . $dimensions['width'];
+            $urls[$i] .= "&sCdMaoPropria=n";
+            $urls[$i] .= "&nVlValorDeclarado=0";
+            $urls[$i] .= "&sCdAvisoRecebimento=n";
+            $urls[$i] .= "&nVlDiametro=0";
+            $urls[$i] .= "&StrRetorno=xml";
+            $urls[$i] .= "&nIndicaCalculo=3";
+            $i++;
+        endforeach;
         
+        Mage::log("multicarrier: getShippingAmount -> urls " .  $urls, null, "frete.log");
+        return $urls;
     }
 
-    public function getXml($url) {
-        $content = file_get_contents($url);
-        $xml = simplexml_load_string($content);
-        Mage::log("multicarrier: getXml -> xml ", null, "frete.log");
-        Mage::log($xml, null, "frete.log");
+    public function getXml($urls) {
         
         $services = null;
 
-        foreach ($xml->cServico as $cServico) {
-            
-            if ((strval($cServico->MsgErro) != "") && (intval($cServico->Erro) != 9) && (intval($cServico->Erro) != 10) && (intval($cServico->Erro) != 11))
-                continue;
+        foreach($urls as $url):
+            $content = file_get_contents($url);
+            $xml = simplexml_load_string($content);
+            Mage::log("multicarrier: getXml -> xml ", null, "frete.log");
+            Mage::log($xml, null, "frete.log");
 
-            $services[] = array (
-                "code" => intval($cServico->Codigo),
-                "days" => intval($cServico->PrazoEntrega),
-                "price" => floatval(str_replace(",", ".", str_replace(".", "", $cServico->Valor)))
-            );
-        }
+            foreach ($xml->cServico as $cServico):
+                
+                if ((strval($cServico->MsgErro) != "") && (intval($cServico->Erro) != 9) && (intval($cServico->Erro) != 10) && (intval($cServico->Erro) != 11)) {
+                    continue;
+                }
+
+                $services[] = array (
+                    "code" => intval($cServico->Codigo),
+                    "days" => intval($cServico->PrazoEntrega),
+                    "price" => floatval(str_replace(",", ".", str_replace(".", "", $cServico->Valor)))
+                );
+
+            endforeach;
+        endforeach;
 
         if (is_array($services)) {
             return $services;
