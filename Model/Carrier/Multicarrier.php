@@ -51,6 +51,8 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
             }
         }
 
+        $this->chooseCarrier($tablerateRates, $correiosDimensionsSum, $correiosWeightSum, $destinationCep, $result);
+
         return $result;
     }
 
@@ -190,7 +192,7 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
 
             if ($tablerate->getFirstitem()->getPrice() != NULL) {
 
-                if (!Mage::getStoreConfig("carriers/multicarrier_tablerate/percent_mode")) {
+                if (Mage::getStoreConfig("carriers/multicarrier_tablerate/percent_mode")) {
 
                     $finalPrice = $itemAmount * ($tablerate->getFirstitem()->getPrice() / 100);
 
