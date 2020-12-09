@@ -292,7 +292,8 @@ class Cammino_Multicarriershipping_Model_Carrier_Multicarrier extends Mage_Shipp
         $method = Mage::getModel("shipping/rate_result_method");
         $method->setCarrier("multicarrier");
         $method->setCarrierTitle(Mage::getStoreConfig('carriers/multicarrier_tablerate/tablerate_cubic_coefficient'));
-        $method->setMethod("multicarrier");
+        // $method->setMethod("multicarrier");
+        $method->setMethod("multicarrier_" . strtolower($shippingTitle));
         $method->setMethodTitle("$shippingTitle ($shippingDays) ");
         $method->setPrice($shippingPrice);
         $method->setCost($shippingPrice);
